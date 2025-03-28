@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GLOBAL RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  background-color: black;
+  font-family: sans-serif;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Remove any extra space on root wrapper */
+#root {
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent spacing glitch at top of page */
+body > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* 🔁 Animated Zoom + Blur Background (SLOW) */
+@layer utilities {
+  @keyframes zoom-blur-slow {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: blur(0px);
+    }
+    50% {
+      transform: scale(1.03);
+      filter: blur(2px);
+    }
+  }
+
+  .animate-zoom-blur-slow {
+    animation: zoom-blur-slow 30s ease-in-out infinite;
+  }
+}
