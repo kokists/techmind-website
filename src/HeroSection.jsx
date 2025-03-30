@@ -1,39 +1,47 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence, useAnimation } from "framer-motion";
-import { ChevronDownIcon } from "@heroicons/react/24/solid"; // Assuming you might want icons
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useAnimation } from "framer-motion";
 
-// Import your logo assets - adjust paths as needed
-import googleLogo from "../../assets/logos/google.png";
-import netflixLogo from "../../assets/logos/netflix.png";
-import amazonLogo from "../../assets/logos/amazon.png";
-import stripeLogo from "../../assets/logos/stripe.png";
-import dropboxLogo from "../../assets/logos/dropbox.png";
-import uberLogo from "../../assets/logos/uber.png";
-// Add other logos if you have them
+import talentImage from "@/assets/images/talent-image.jpg";
+import jobsImage from "@/assets/images/jobs-image.jpg";
+import googleLogo from "@/assets/logos/google.png";
+import netflixLogo from "@/assets/logos/netflix.png";
+import amazonLogo from "@/assets/logos/amazon.png";
+import stripeLogo from "@/assets/logos/stripe.png";
+import dropboxLogo from "@/assets/logos/dropbox.png";
+import uberLogo from "@/assets/logos/uber.png";
 
-// Placeholder images - replace with your actual image paths
-import talentImage from "../../assets/images/hero-talent.jpg"; // Replace with your talent mode image
-import jobsImage from "../../assets/images/hero-jobs.jpg"; // Replace with your jobs mode image
-
-// Typing Animation Component (Simple example)
-const TypingSubheading = ({ text, speed = 50 }) => {
-  const [displayedText, setDisplayedText] = useState("");
+const TypingEffect = ({
+  words,
+  speed = 150,
+  deleteSpeed = 75,
+  pause = 1500,
+  gradientClass,
+}) => {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [text, setText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {
-    setDisplayedText(""); // Reset on text change
-    let i = 0;
-    const intervalId = setInterval(() => {
-      setDisplayedText((prev) => prev + text.charAt(i));
-      i++;
-      if (i > text.length - 1) {
-        clearInterval(intervalId);
+    const currentWord = words[wordIndex];
+    const typeSpeed = isDeleting ? deleteSpeed : speed;
+    const handleTyping = () => {
+      setText((current) =>
+        isDeleting
+          ? currentWord.substring(0, current.length - 1)
+          : currentWord.substring(0, current.length + 1)
+      );
+      if (!isDeleting && text === currentWord) {
+        setTimeout(() => setIsDeleting(true), pause);
+      } else if (isDeleting && text === "") {
+        setIsDeleting(false);
+        setWordIndex((prev) => (prev + 1) % words.length);
       }
-    }, speed);
-    return () => clearInterval(intervalId);
-  }, [text, speed]);
+    };
+    const typingTimeout = setTimeout(handleTyping, typeSpeed);
+    return () => clearTimeout(typingTimeout);
+  }, [text, isDeleting, wordIndex, words, speed, deleteSpeed, pause]);
 
-  // Blinking cursor effect
   useEffect(() => {
     const cursorInterval = setInterval(() => {
       setShowCursor((prev) => !prev);
@@ -41,21 +49,22 @@ const TypingSubheading = ({ text, speed = 50 }) => {
     return () => clearInterval(cursorInterval);
   }, []);
 
+  const cursorVisibilityClass = showCursor ? "opacity-100" : "opacity-0";
+
   return (
-    <span className="relative">
-      {displayedText}
-      <motion.span
-        className="absolute inline-block w-0.5 h-full bg-current -right-1 bottom-0" // Adjust cursor style/position
-        animate={{ opacity: showCursor ? 1 : 0 }}
-        transition={{ duration: 0.25, ease: "linear" }}
+    <span
+      className={`relative whitespace-nowrap min-w-[1ch] text-4xl sm:text-5xl lg:text-6xl font-bold ${gradientClass}`}
+    >
+      {text}
+      <span
+        className={`inline-block ml-1 ${cursorVisibilityClass} transition-opacity duration-100 ease-in-out`}
       >
         _
-      </motion.span>
+      </span>
     </span>
   );
 };
 
-// Main Hero Section Component
 const HeroSection = ({ selectedOption, setSelectedOption }) => {
   const isTalentMode = selectedOption === "talent";
 
@@ -66,238 +75,289 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
     { id: 4, src: stripeLogo, alt: "Stripe" },
     { id: 5, src: dropboxLogo, alt: "Dropbox" },
     { id: 6, src: uberLogo, alt: "Uber" },
-    // Add more logos here
   ];
 
-  // Animation controls for looping logo animation
-  const controls = useAnimation();
+  const controlsRef = useRef(logos.map(() => useAnimation()));
+  const controls = controlsRef.current;
+
+  const logoVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
 
   useEffect(() => {
-    // Sequence for looping logo pop animation after initial stagger
-    const sequence = async () => {
-      while (true) {
-        const randomIndex = Math.floor(Math.random() * logos.length);
-        await controls.start((i) =>
-          i === randomIndex
-            ? { scale: [1, 1.1, 1], transition: { duration: 0.3 } }
-            : { scale: 1 }
-        );
-        // Wait a bit before the next pop
-        await new Promise((resolve) =>
-          setTimeout(resolve, Math.random() * 1500 + 500)
-        );
+    controls.forEach((control, index) => {
+      setTimeout(() => {
+        control.start("visible");
+      }, index * 500);
+    });
+
+    const delayBeforePop = logos.length * 500 + 600;
+    const popInterval = setTimeout(() => {
+      const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * controls.length);
+        controls[randomIndex].start({
+          scale: [1, 1.15, 1],
+          transition: { duration: 0.6, ease: "easeOut" },
+        });
+      }, 1800);
+      controlsRef.current._popInterval = interval;
+    }, delayBeforePop);
+
+    return () => {
+      clearTimeout(popInterval);
+      if (controlsRef.current._popInterval) {
+        clearInterval(controlsRef.current._popInterval);
       }
     };
-    // Start looping slightly after initial animation finishes
-    const timeoutId = setTimeout(sequence, logos.length * 150 + 1000); // Adjust timing
-    return () => clearTimeout(timeoutId); // Cleanup on unmount
   }, [controls, logos.length]);
 
-  // Variants for Framer Motion animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1, // Stagger children animation
-      },
-    },
-  };
+  const StatsBanner = ({ isTalentMode }) => {
+    const stats = isTalentMode
+      ? [
+          { number: "500+", label: "Projects Delivered" },
+          { number: "98%", label: "Client Satisfaction" },
+          { number: "15+", label: "Years Experience" },
+          { number: "50+", label: "Tech Partners" },
+        ]
+      : [
+          { number: "10K+", label: "Tech Jobs" },
+          { number: "95%", label: "Placement Rate" },
+          { number: "48h", label: "Response Time" },
+          { number: "30+", label: "Tech Companies" },
+        ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    return (
+      <div className="relative">
+        <div
+          className={`w-full py-8 ${
+            isTalentMode
+              ? "bg-gradient-to-r from-blue-900/90 via-blue-800/90 to-blue-900/90"
+              : "bg-gradient-to-r from-green-900/90 via-green-800/90 to-green-900/90"
+          }`}
+        >
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="flex flex-col items-center"
+                >
+                  <span className="text-4xl font-bold text-white mb-2">
+                    {stat.number}
+                  </span>
+                  <span
+                    className={`text-sm font-medium ${
+                      isTalentMode ? "text-blue-200" : "text-green-200"
+                    }`}
+                  >
+                    {stat.label}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
-
-  const logoContainerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.15, // Stagger logo entry
-      },
-    },
-  };
-
-  const logoItemVariants = {
-    hidden: { opacity: 0, scale: 0.5 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring", stiffness: 100 },
-    },
-  };
-
-  const subheadingText = isTalentMode
-    ? "We help you hire the top 1% of vetted remote engineers"
-    : "Find your dream job with leading tech companies globally"; // Example for jobs mode
 
   return (
     <motion.section
-      id="hero"
-      className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-500 ease-in-out ${
-        isTalentMode ? "bg-tech-blue-dark" : "bg-tech-lime-dark" // Assumed dark background colors
-      }`}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="relative min-h-screen bg-gray-900 overflow-hidden"
     >
-      {/* 1. Animated Background Layer */}
-      <motion.div
-        className="absolute inset-0 z-0"
-        key={selectedOption} // Re-trigger animation on mode change
-        initial={{ scale: 1.2, opacity: 0 }}
-        animate={{
-          scale: [1.1, 1], // Subtle zoom out on load/change
-          opacity: 1,
-          // Add looping zoom/blur/parallax here if desired using animate prop loops
-          // Example subtle loop (add animate-bg-loop to tailwind.config.js)
-          // animation: `bg-loop 30s ease-in-out infinite`
-        }}
-        transition={{ duration: 1.5, ease: "circOut" }}
-      >
-        <AnimatePresence>
-          <motion.img
-            key={isTalentMode ? "talent-bg" : "jobs-bg"}
-            src={isTalentMode ? talentImage : jobsImage} // Use dynamic image source
-            alt="Hero background"
-            className={`object-cover w-full h-full transition-transform duration-500 ease-in-out ${
-              isTalentMode ? "" : "transform scale-x-[-1]"
-            }`} // Mirror effect example
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.3, transition: { duration: 1, delay: 0.5 } }} // Adjust opacity/delay
-            exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.img
+          src={selectedOption === "talent" ? talentImage : jobsImage}
+          alt="Background"
+          className="w-full h-full object-cover"
+          initial={{ scale: 1 }}
+          animate={{ scale: 1.15 }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/50 to-gray-900/80" />
 
-            // Add parallax effect using useScroll if needed later
-          />
-        </AnimatePresence>
-      </motion.div>
-      {/* 2. Animated Gradient Overlay Layer */}
-      <motion.div
-        className={`absolute inset-0 z-10 mix-blend-hard-light animate-gradient-overlay`} // Use custom animation class
-        style={{
-          // Dynamic gradient based on mode
-          backgroundImage: isTalentMode
-            ? "linear-gradient(90deg, rgba(0, 119, 255, 0.3) 0%, rgba(0, 255, 255, 0.1) 100%)" // Tech Blue gradient (Adjust colors/opacity)
-            : "linear-gradient(90deg, rgba(50, 205, 50, 0.3) 0%, rgba(173, 255, 47, 0.1) 100%)", // Teal/Lime gradient (Adjust colors/opacity)
-        }}
-        // Animate position via CSS animation defined in tailwind.config.js
-      />
-      {/* Add backdrop filter for glassmorphism if desired - place on content container or separate overlay */}
-      <div className="absolute inset-0 z-15 backdrop-filter backdrop-blur-sm"></div>{" "}
-      {/* Optional: Adjust blur */}
-      {/* Content Container */}
-      <motion.div
-        className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center"
-        variants={containerVariants} // Apply stagger to content elements
-      >
-        {/* Mode Toggle Buttons */}
-        <motion.div
-          variants={itemVariants}
-          className="flex justify-center mb-12"
-        >
-          <div className="relative flex p-1 bg-gray-700 bg-opacity-50 rounded-full backdrop-filter backdrop-blur-md">
-            <button
-              onClick={() => setSelectedOption("talent")}
-              className={`relative z-10 px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
-                isTalentMode ? "text-white" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              Hire Talent
-            </button>
-            <button
-              onClick={() => setSelectedOption("jobs")}
-              className={`relative z-10 px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
-                !isTalentMode ? "text-white" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              Find a Job
-            </button>
-            {/* Animated background slider for the toggle */}
-            <motion.div
-              layoutId="modeSlider" // Shared layout animation ID
-              className={`absolute inset-0 h-full rounded-full ${
-                isTalentMode ? "bg-blue-600" : "bg-teal-500"
-              }`} // Use Tailwind theme colors
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ width: "50%", left: isTalentMode ? "0%" : "50%" }} // Adjust width based on button sizes
-            />
-          </div>
-        </motion.div>
+        {/* Mode-specific gradient overlay */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-r ${
+            isTalentMode
+              ? "from-blue-900/80 via-blue-900/40 to-transparent"
+              : "from-green-900/80 via-green-900/40 to-transparent"
+          } backdrop-blur-[2px]`}
+        />
+      </div>
 
-        {/* Main Content Grid */}
+      {/* Main Content */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="relative container mx-auto px-4 pt-32 pb-40 flex flex-col items-center justify-start min-h-screen"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Left Side: Logos */}
-          <motion.div
-            className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-4"
-            variants={logoContainerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {logos.map((logo, index) => (
-              <motion.img
-                key={logo.id}
-                custom={index} // Pass index for custom animation control
-                src={logo.src}
-                alt={logo.alt}
-                className="h-8 sm:h-10 object-contain filter brightness-0 invert" // White logos
-                variants={logoItemVariants} // Entry animation
-                animate={controls} // Apply looping animation controls
-                whileHover={{ scale: 1.1, transition: { duration: 0.2 } }} // Subtle hover effect
-              />
-            ))}
-          </motion.div>
-
-          {/* Right Side: Text Content & CTA */}
-          <motion.div
-            className="text-center lg:text-left text-white"
-            variants={containerVariants}
-          >
-            <motion.h1
-              variants={itemVariants}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight"
-            >
-              {isTalentMode ? "HIRE" : "FIND"}{" "}
-              <span
-                className={isTalentMode ? "text-blue-400" : "text-lime-400"}
+          {/* Logos Section */}
+          <div className="relative">
+            {/* Trust Message */}
+            <div className="absolute -top-12 left-1/3 right-1/3 text-center">
+              <p
+                className={`text-lg font-medium mb-2 ${
+                  isTalentMode ? "text-blue-200" : "text-green-200"
+                }`}
               >
-                {isTalentMode ? "smarter" : "faster"} {/* Example variation */}
+                Trusted by Industry Leaders
+              </p>
+            </div>
+
+            {/* Logos Grid */}
+            <div className="grid grid-cols-3 gap-8">
+              {/* First Column */}
+              <div className="space-y-8 flex flex-col items-center">
+                <motion.img
+                  src={logos[0].src}
+                  alt={logos[0].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[0]}
+                />
+                <motion.img
+                  src={logos[3].src}
+                  alt={logos[3].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[3]}
+                />
+              </div>
+
+              {/* Middle Column */}
+              <div className="space-y-8 flex flex-col items-center">
+                <motion.img
+                  src={logos[1].src}
+                  alt={logos[1].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[1]}
+                />
+                <motion.img
+                  src={logos[4].src}
+                  alt={logos[4].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[4]}
+                />
+              </div>
+
+              {/* Last Column */}
+              <div className="space-y-8 flex flex-col items-center">
+                <motion.img
+                  src={logos[2].src}
+                  alt={logos[2].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[2]}
+                />
+                <motion.img
+                  src={logos[5].src}
+                  alt={logos[5].alt}
+                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  initial="hidden"
+                  variants={logoVariants}
+                  animate={controls[5]}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Text Content */}
+          <div className="text-center lg:text-left text-white">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              <span className="block mb-4">
+                {selectedOption === "talent"
+                  ? "Transform Your Tech Vision"
+                  : "Find Your Dream Tech Role"}
               </span>
-            </motion.h1>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-lg sm:text-xl text-gray-300 mb-8 h-12"
-            >
-              {" "}
-              {/* Fixed height for typing */}
-              {/* 3. Typing Subheading */}
-              <TypingSubheading key={subheadingText} text={subheadingText} />
-            </motion.p>
-
-            <motion.button
-              variants={itemVariants}
-              className={`px-8 py-3 rounded-full font-semibold text-lg transition-all duration-300 ease-in-out shadow-lg ${
-                isTalentMode
-                  ? "bg-blue-600 hover:bg-blue-500 text-white ring-blue-500"
-                  : "bg-lime-500 hover:bg-lime-400 text-black ring-lime-400" // Example for jobs mode
-              }`}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: `0 0 20px ${
-                  isTalentMode
-                    ? "rgba(59, 130, 246, 0.7)"
-                    : "rgba(163, 230, 53, 0.7)"
-                }`,
-              }} // Glow effect
-              whileTap={{ scale: 0.95 }}
-            >
-              {isTalentMode ? "Find Your Match" : "Apply Now"}
-              {/* Optional: Add icon */}
-              {/* <ChevronDownIcon className="w-5 h-5 inline-block ml-2" /> */}
-            </motion.button>
-          </motion.div>
+              <span>
+                <TypingEffect
+                  words={
+                    selectedOption === "talent"
+                      ? [
+                          "With Expert Engineers",
+                          "With Agile Teams",
+                          "With Innovation",
+                        ]
+                      : [
+                          "In Top Tech Companies",
+                          "With Great Benefits",
+                          "With Growth Potential",
+                        ]
+                  }
+                  gradientClass={`bg-gradient-to-r text-transparent bg-clip-text ${
+                    isTalentMode
+                      ? "from-blue-600 via-blue-400 to-cyan-400"
+                      : "from-green-600 via-green-400 to-lime-400"
+                  }`}
+                />
+              </span>
+            </h1>
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl">
+              {selectedOption === "talent"
+                ? "Access top-tier tech talent and innovative solutions to drive your business forward."
+                : "Connect with leading tech companies and take your career to the next level."}
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedOption("talent")}
+                className={`px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
+                  selectedOption === "talent"
+                    ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
+                }`}
+              >
+                Hire Talent
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedOption("jobs")}
+                className={`px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
+                  selectedOption === "jobs"
+                    ? "bg-gradient-to-r from-green-500 to-lime-500 text-white shadow-lg shadow-green-500/25"
+                    : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
+                }`}
+              >
+                Find Jobs
+              </motion.button>
+            </div>
+          </div>
         </div>
       </motion.div>
+
+      {/* Stats Banner positioned at the bottom of the image */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <StatsBanner isTalentMode={isTalentMode} />
+      </div>
     </motion.section>
   );
 };

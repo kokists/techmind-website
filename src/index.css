@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* GLOBAL RESET */
 * {
   margin: 0;
   padding: 0;
@@ -13,38 +12,47 @@ html,
 body {
   height: 100%;
   width: 100%;
-  background-color: black;
   font-family: sans-serif;
   overflow-x: hidden;
-  scroll-behavior: smooth;
 }
 
-/* Remove any extra space on root wrapper */
 #root {
   margin: 0;
   padding: 0;
 }
 
-/* Prevent spacing glitch at top of page */
 body > *:first-child {
   margin-top: 0 !important;
 }
 
-/* 🔁 Animated Zoom + Blur Background (SLOW) */
-@layer utilities {
-  @keyframes zoom-blur-slow {
-    0%,
-    100% {
-      transform: scale(1);
-      filter: blur(0px);
-    }
-    50% {
-      transform: scale(1.03);
-      filter: blur(2px);
-    }
-  }
+/* Ensure there is no unwanted full-height on the root container */
+body,
+main {
+  height: auto;
+}
 
-  .animate-zoom-blur-slow {
-    animation: zoom-blur-slow 30s ease-in-out infinite;
+/* Zoom In/Out effect for hero background */
+@keyframes zoomInOut {
+  0% {
+    transform: scale(1);
   }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.zoom-in-out {
+  animation: zoomInOut 30s ease-in-out infinite;
+}
+
+/* Text Shadow for better readability on Hero Section */
+.text-shadow-lg {
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.text-shadow-xl {
+  text-shadow: 4px 4px 15px rgba(0, 0, 0, 0.7);
 }
