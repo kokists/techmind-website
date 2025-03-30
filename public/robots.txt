@@ -1,0 +1,16 @@
+# TechMind Website Robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://techmind.example.com/sitemap.xml
+
+# Disallow admin area
+User-agent: *
+Disallow: /admin/
+
+# Disallow certain file types
+User-agent: *
+Disallow: /*.pdf$
+Disallow: /*.docx$
+Disallow: /*.xlsx$
+Disallow: /*.pptx$

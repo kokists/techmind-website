@@ -19,23 +19,29 @@ const Navbar = ({ selectedOption }) => {
   const getNavbarStyle = () => {
     if (!isScrolled) return "bg-transparent";
     
-    return selectedOption === "talent"
-      ? "bg-gradient-to-r from-blue-900/95 via-blue-800/95 to-blue-900/95 backdrop-blur-md shadow-lg border-b border-blue-700/30"
-      : "bg-gradient-to-r from-green-900/95 via-green-800/95 to-green-900/95 backdrop-blur-md shadow-lg border-b border-green-700/30";
+    return "bg-white backdrop-blur-md shadow-lg";
+  };
+
+  const getTextStyle = () => {
+    if (!isScrolled) return "text-white";
+    return "text-gray-800";
   };
 
   const getHoverStyle = () => {
     if (!isScrolled) return "hover:text-white hover:scale-105 transform";
     
-    return selectedOption === "talent"
-      ? "hover:text-blue-200 hover:scale-105 transform"
-      : "hover:text-green-200 hover:scale-105 transform";
+    return "hover:text-gray-900 hover:scale-105 transform";
   };
 
   const getActiveStyle = () => {
+    if (!isScrolled) {
+      return selectedOption === "talent"
+        ? "text-blue-200 font-medium"
+        : "text-green-200 font-medium";
+    }
     return selectedOption === "talent"
-      ? "text-blue-200 font-medium"
-      : "text-green-200 font-medium";
+      ? "text-blue-600 font-medium"
+      : "text-green-600 font-medium";
   };
 
   const navLinks = [
@@ -55,11 +61,14 @@ const Navbar = ({ selectedOption }) => {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className={`text-2xl font-bold text-white tracking-tight transition-all duration-300 ${
-              isScrolled ? "scale-95" : ""
-            } hover:scale-100`}
+            className={`text-2xl font-bold tracking-tight transition-all duration-300 ${getTextStyle()} ${isScrolled ? "scale-95" : ""} hover:scale-100`}
           >
-            <span className={selectedOption === "talent" ? "text-blue-300" : "text-green-300"}>Tech</span>
+            <span className={!isScrolled 
+              ? (selectedOption === "talent" ? "text-blue-300" : "text-green-300")
+              : (selectedOption === "talent" ? "text-blue-600" : "text-green-600")
+            }>
+              Tech
+            </span>
             Mind
           </Link>
 
@@ -69,9 +78,7 @@ const Navbar = ({ selectedOption }) => {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-4 py-2 rounded-lg text-gray-100 transition-all duration-300 ${getHoverStyle()} ${
-                  window.location.pathname === link.to ? getActiveStyle() : ""
-                }`}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 ${getTextStyle()} ${getHoverStyle()} ${window.location.pathname === link.to ? getActiveStyle() : ""}`}
               >
                 {link.label}
               </Link>
@@ -79,11 +86,9 @@ const Navbar = ({ selectedOption }) => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`ml-4 px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
-                selectedOption === "talent"
-                  ? "bg-blue-500 hover:bg-blue-400 text-white"
-                  : "bg-green-500 hover:bg-green-400 text-white"
-              }`}
+              className={`ml-4 px-6 py-2 rounded-lg font-medium transition-all duration-300 ${selectedOption === "talent"
+                ? "bg-blue-500 hover:bg-blue-400 text-white"
+                : "bg-green-500 hover:bg-green-400 text-white"}`}
             >
               Get Started
             </motion.button>
@@ -92,11 +97,12 @@ const Navbar = ({ selectedOption }) => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`md:hidden text-white transition-all duration-300 p-2 rounded-lg ${
-              selectedOption === "talent"
-                ? "hover:bg-blue-800/50"
-                : "hover:bg-green-800/50"
-            }`}
+            className={`md:hidden transition-all duration-300 p-2 rounded-lg ${getTextStyle()} ${isScrolled 
+              ? (selectedOption === "talent" ? "hover:bg-blue-50" : "hover:bg-green-50")
+              : (selectedOption === "talent" ? "hover:bg-blue-800/50" : "hover:bg-green-800/50")}`}
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle navigation menu"
+            aria-controls="mobile-menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -106,21 +112,27 @@ const Navbar = ({ selectedOption }) => {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              id="mobile-menu"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="md:hidden mt-4"
+              role="navigation"
+              aria-label="Mobile navigation"
             >
               <div className="flex flex-col space-y-2 pb-4">
                 {navLinks.map((link) => (
                   <Link
                     key={link.to}
                     to={link.to}
-                    className={`px-4 py-2 rounded-lg text-gray-100 transition-all duration-300 ${
-                      selectedOption === "talent"
-                        ? "hover:bg-blue-800/50"
-                        : "hover:bg-green-800/50"
-                    } ${window.location.pathname === link.to ? getActiveStyle() : ""}`}
+                    className={`px-4 py-3 rounded-lg transition-all duration-300 
+                      ${getTextStyle()} 
+                      ${isScrolled 
+                        ? (selectedOption === "talent" ? "hover:bg-blue-50" : "hover:bg-green-50")
+                        : (selectedOption === "talent" ? "hover:bg-blue-800/50" : "hover:bg-green-800/50")
+                      } 
+                      ${window.location.pathname === link.to ? getActiveStyle() : ""}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.label}
@@ -129,11 +141,9 @@ const Navbar = ({ selectedOption }) => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`mt-2 px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
-                    selectedOption === "talent"
-                      ? "bg-blue-500 hover:bg-blue-400 text-white"
-                      : "bg-green-500 hover:bg-green-400 text-white"
-                  }`}
+                  className={`mt-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${selectedOption === "talent"
+                    ? "bg-blue-500 hover:bg-blue-400 text-white"
+                    : "bg-green-500 hover:bg-green-400 text-white"}`}
                 >
                   Get Started
                 </motion.button>
