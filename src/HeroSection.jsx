@@ -235,13 +235,13 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
             </div>
 
             {/* Logos in a single row for mobile */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 lg:gap-8">
               {logos.map((logo, index) => (
                 <motion.img
                   key={logo.id}
                   src={logo.src}
                   alt={logo.alt}
-                  className="h-12 sm:h-14 md:h-16 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  className="h-12 sm:h-14 md:h-16 lg:h-20 xl:h-24 object-contain hover:drop-shadow-[0_0_10px_white]"
                   initial="hidden"
                   variants={logoVariants}
                   animate={controls[index]}
