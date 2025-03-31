@@ -11,9 +11,7 @@ const HomePage = lazy(() => import("./HomePage"));
 const About = lazy(() => import("./About"));
 const Services = lazy(() => import("./Services"));
 const Solutions = lazy(() => import("./Solutions"));
-const Industries = lazy(() => import("./Industries"));
 const Careers = lazy(() => import("./Careers"));
-const Contact = lazy(() => import("./Contact"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 export default function App() {
@@ -43,9 +41,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/capabilities" element={<Solutions />} />
-            <Route path="/industries" element={<Industries />} />
             <Route path="/careers" element={<Careers />} />
-            <Route path="/contact" element={<Contact />} />
             {/* 404 route - must be last */}
             <Route path="*" element={<NotFound />} />
           </Routes>

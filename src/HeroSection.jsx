@@ -67,6 +67,18 @@ const TypingEffect = ({
 
 const HeroSection = ({ selectedOption, setSelectedOption }) => {
   const isTalentMode = selectedOption === "talent";
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 640; // sm breakpoint in Tailwind
 
   const logos = [
     { id: 1, src: googleLogo, alt: "Google" },
@@ -134,14 +146,14 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
     return (
       <div className="relative">
         <div
-          className={`w-full py-8 ${
+          className={`w-full pt-2 pb-8 sm:py-6 ${
             isTalentMode
               ? "bg-gradient-to-r from-blue-900/90 via-blue-800/90 to-blue-900/90"
               : "bg-gradient-to-r from-green-900/90 via-green-800/90 to-green-900/90"
           }`}
         >
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 text-center">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
@@ -150,13 +162,11 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="flex flex-col items-center"
                 >
-                  <span className="text-4xl font-bold text-white mb-2">
+                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-0">
                     {stat.number}
                   </span>
                   <span
-                    className={`text-sm font-medium ${
-                      isTalentMode ? "text-blue-200" : "text-green-200"
-                    }`}
+                    className={`text-xs sm:text-sm font-medium ${isTalentMode ? "text-blue-200" : "text-green-200"}`}
                   >
                     {stat.label}
                   </span>
@@ -208,15 +218,15 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative container mx-auto px-4 pt-32 pb-40 flex flex-col items-center justify-start min-h-screen"
+        className="relative container mx-auto px-4 pt-24 pb-24 sm:pt-28 sm:pb-32 md:pt-32 md:pb-40 flex flex-col items-center justify-start min-h-screen"
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Logos Section */}
           <div className="relative">
             {/* Trust Message */}
-            <div className="absolute -top-12 left-1/3 right-1/3 text-center">
+            <div className="mb-6 text-center">
               <p
-                className={`text-lg font-medium mb-2 ${
+                className={`text-sm md:text-lg font-medium whitespace-nowrap ${
                   isTalentMode ? "text-blue-200" : "text-green-200"
                 }`}
               >
@@ -224,67 +234,19 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
               </p>
             </div>
 
-            {/* Logos Grid */}
-            <div className="grid grid-cols-3 gap-8">
-              {/* First Column */}
-              <div className="space-y-8 flex flex-col items-center">
+            {/* Logos in a single row for mobile */}
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+              {logos.map((logo, index) => (
                 <motion.img
-                  src={logos[0].src}
-                  alt={logos[0].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
+                  key={logo.id}
+                  src={logo.src}
+                  alt={logo.alt}
+                  className="h-12 sm:h-14 md:h-16 object-contain hover:drop-shadow-[0_0_10px_white]"
                   initial="hidden"
                   variants={logoVariants}
-                  animate={controls[0]}
+                  animate={controls[index]}
                 />
-                <motion.img
-                  src={logos[3].src}
-                  alt={logos[3].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
-                  initial="hidden"
-                  variants={logoVariants}
-                  animate={controls[3]}
-                />
-              </div>
-
-              {/* Middle Column */}
-              <div className="space-y-8 flex flex-col items-center">
-                <motion.img
-                  src={logos[1].src}
-                  alt={logos[1].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
-                  initial="hidden"
-                  variants={logoVariants}
-                  animate={controls[1]}
-                />
-                <motion.img
-                  src={logos[4].src}
-                  alt={logos[4].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
-                  initial="hidden"
-                  variants={logoVariants}
-                  animate={controls[4]}
-                />
-              </div>
-
-              {/* Last Column */}
-              <div className="space-y-8 flex flex-col items-center">
-                <motion.img
-                  src={logos[2].src}
-                  alt={logos[2].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
-                  initial="hidden"
-                  variants={logoVariants}
-                  animate={controls[2]}
-                />
-                <motion.img
-                  src={logos[5].src}
-                  alt={logos[5].alt}
-                  className="h-24 sm:h-28 object-contain hover:drop-shadow-[0_0_10px_white]"
-                  initial="hidden"
-                  variants={logoVariants}
-                  animate={controls[5]}
-                />
-              </div>
+              ))}
             </div>
           </div>
 
@@ -319,37 +281,59 @@ const HeroSection = ({ selectedOption, setSelectedOption }) => {
                 />
               </span>
             </h1>
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-3xl">
               {selectedOption === "talent"
                 ? "Access top-tier tech talent and innovative solutions to drive your business forward."
                 : "Connect with leading tech companies and take your career to the next level."}
             </p>
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedOption("talent")}
-                className={`px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-                  selectedOption === "talent"
-                    ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
-                }`}
-              >
-                Hire Talent
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedOption("jobs")}
-                className={`px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-                  selectedOption === "jobs"
-                    ? "bg-gradient-to-r from-green-500 to-lime-500 text-white shadow-lg shadow-green-500/25"
-                    : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
-                }`}
-              >
-                Find Jobs
-              </motion.button>
-            </div>
+
+            {/* Mobile Toggle Buttons - Simplified approach */}
+            {isMobile ? (
+              <div className="w-full max-w-xs mx-auto mb-20">
+                <p className="text-gray-400 text-xs text-center mb-2">Select mode:</p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setSelectedOption("talent")}
+                    className={`flex-1 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${selectedOption === "talent" ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg" : "bg-gray-800/80 text-gray-300"}`}
+                  >
+                    Hire Talent
+                  </button>
+                  <button
+                    onClick={() => setSelectedOption("jobs")}
+                    className={`flex-1 py-3 rounded-lg font-medium text-sm transition-all duration-300 ${selectedOption === "jobs" ? "bg-gradient-to-r from-green-500 to-lime-500 text-white shadow-lg" : "bg-gray-800/80 text-gray-300"}`}
+                  >
+                    Find Jobs
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6 mb-12 sm:mb-8 md:mb-0">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedOption("talent")}
+                  className={`px-8 sm:px-10 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 ${
+                    selectedOption === "talent"
+                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25"
+                      : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
+                  }`}
+                >
+                  Hire Talent
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedOption("jobs")}
+                  className={`px-8 sm:px-10 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 ${
+                    selectedOption === "jobs"
+                      ? "bg-gradient-to-r from-green-500 to-lime-500 text-white shadow-lg shadow-green-500/25"
+                      : "bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 backdrop-blur-sm"
+                  }`}
+                >
+                  Find Jobs
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
